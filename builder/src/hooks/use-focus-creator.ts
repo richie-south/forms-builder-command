@@ -6,7 +6,7 @@ export function useFocusCreator(): [
 ] {
   const nrOfFields = useFieldStore(selectNrOfFields)
 
-  const setFocusPoint = (element: HTMLInputElement, position?: number) => {
+  const setFocusPoint = (element: HTMLInputElement) => {
     if (element.selectionStart) {
       const elementContentLength = element.value.length
       setTimeout(() => {

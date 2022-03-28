@@ -12,6 +12,14 @@ import {
 } from './lib/store/field-store'
 import styled, { css } from 'styled-components'
 import { useFocusCreator } from './hooks/use-focus-creator'
+import {
+  CreatorContainer,
+  CreatorButtonsContainer,
+  CreatorConfigButtons,
+} from './components/creator-styles'
+import { Popover } from 'react-tiny-popover'
+import { CreatorSelectorMenu } from './components/creator-selector-menu/creator-selector-menu'
+import { useSelectorMenu } from './hooks/use-selector-menu'
 
 const AppContainer = styled.div`
   display: grid;
@@ -82,38 +90,6 @@ const CreatorInput: React.FC<CreatorInputProps> = ({
   )
 }
 
-const CreatorContainer = styled.div`
-  display: grid;
-  grid-template-columns: 114px 1fr;
-  grid-gap: 16px;
-`
-
-const CreatorConfigButtons = styled.div``
-
-type CreatorButtonsContainerProps = {
-  showButtons: boolean
-}
-
-const CreatorButtonsContainer = styled.div<CreatorButtonsContainerProps>`
-  display: grid;
-  grid-auto-flow: column;
-  grid-gap: 8px;
-
-  ${(props) =>
-    !props.showButtons &&
-    css`
-      ${CreatorConfigButtons} {
-        display: none;
-      }
-    `}
-
-  ${CreatorContainer}:hover & {
-    ${CreatorConfigButtons} {
-      display: block;
-    }
-  }
-`
-
 type CreatorProps = {
   field: Field
   nextFocus: (direction?: 'ArrowUp' | 'ArrowDown', position?: number) => void
@@ -128,6 +104,13 @@ const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
   const [inputValue, setInputValue] = useState<string>('')
   const [showButtons, setShowButtons] = useState<boolean>(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const {
+    closeContextMenu,
+    onInputValueChangeContextMenu,
+    selectorMenuStartIndex,
+    showSelectorMenu,
+  } = useSelectorMenu(inputRef)
 
   useEffect(() => {
     setInputValue(field.value)
@@ -188,7 +171,7 @@ const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
   }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && !showSelectorMenu) {
       handleAddField()
     } else if (
       event.key === 'Backspace' &&
@@ -200,19 +183,18 @@ const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
     }
   }
 
-  const handleOpenContextMenu = () => {
-    /* TODO: open */
-  }
-
   const handleCreatorInputValueChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = event.target.value
     setInputValue(value)
+    onInputValueChangeContextMenu(value)
+  }
 
-    if (value.trim() === '/') {
-      handleOpenContextMenu()
-    }
+  const getSelectorMenuSearchValue = (): string => {
+    if (selectorMenuStartIndex === -1) return ''
+
+    return inputValue.substring(selectorMenuStartIndex, inputValue.length)
   }
 
   return (
@@ -233,18 +215,31 @@ const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
         />
       )} */}
       {field.type === 'creator' && (
-        <input
-          ref={inputRef}
-          type="text"
-          autoFocus
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          value={inputValue}
-          onChange={handleCreatorInputValueChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Type '/' to insert blocks"
-          className="creator-input"
-        />
+        <Popover
+          isOpen={showSelectorMenu}
+          positions={['bottom', 'top']}
+          align="center"
+          reposition
+          onClickOutside={closeContextMenu}
+          content={
+            <CreatorSelectorMenu searchValue={getSelectorMenuSearchValue()} />
+          }
+        >
+          <div>
+            <input
+              ref={inputRef}
+              type="text"
+              autoFocus
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              value={inputValue}
+              onChange={handleCreatorInputValueChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Type '/' to insert blocks"
+              className="creator-input"
+            />
+          </div>
+        </Popover>
       )}
     </CreatorContainer>
   )
