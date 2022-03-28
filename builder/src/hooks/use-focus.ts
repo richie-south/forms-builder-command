@@ -1,11 +1,9 @@
 import { useEffect } from 'react'
-import { selectNrOfFields, useFieldStore } from '../lib/store/field-store'
 
-export function useFocusCreator(): [
-  (direction?: 'ArrowUp' | 'ArrowDown') => void
-] {
-  const nrOfFields = useFieldStore(selectNrOfFields)
-
+export function useFocus(
+  inputRef: React.RefObject<HTMLInputElement>,
+  disable = false
+) {
   const setFocusPoint = (element: HTMLInputElement) => {
     if (element.selectionStart) {
       const elementContentLength = element.value.length
@@ -47,6 +45,10 @@ export function useFocusCreator(): [
   }
 
   useEffect(() => {
+    if (disable) {
+      return
+    }
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (
         !document.activeElement ||
@@ -57,12 +59,12 @@ export function useFocusCreator(): [
       nextFocus(event.key)
     }
 
-    window.addEventListener('keydown', onKeyDown)
+    inputRef.current?.addEventListener('keydown', onKeyDown)
 
     return () => {
-      window.removeEventListener('keydown', onKeyDown)
+      inputRef.current?.removeEventListener('keydown', onKeyDown)
     }
-  }, [nrOfFields])
+  }, [disable])
 
   return [nextFocus]
 }

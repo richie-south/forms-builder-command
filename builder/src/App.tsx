@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   useFieldStore,
   selectFields,
@@ -8,10 +8,9 @@ import {
   selectUpdateField,
   selectUpdatePrevFieldValue,
   Field,
-  FieldInputProps,
 } from './lib/store/field-store'
 import styled, { css } from 'styled-components'
-import { useFocusCreator } from './hooks/use-focus-creator'
+import { useFocus } from './hooks/use-focus'
 import {
   CreatorContainer,
   CreatorButtonsContainer,
@@ -30,10 +29,9 @@ const AppContainer = styled.div`
 
 type CreatorProps = {
   field: Field
-  nextFocus: (direction?: 'ArrowUp' | 'ArrowDown', position?: number) => void
 }
 
-const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
+const Creator: React.FC<CreatorProps> = ({ field }) => {
   const addField = useFieldStore(selectAddField)
   const updateField = useFieldStore(selectUpdateField)
   const removeField = useFieldStore(selectRemoveField)
@@ -49,6 +47,16 @@ const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
     contextMenuStartIndex,
     showContextMenu,
   } = useContextMenu(inputRef)
+
+  const shouldDisableFocus = () => {
+    if (showContextMenu) return true
+
+    if (!focus) return true
+
+    return false
+  }
+
+  const [nextFocus] = useFocus(inputRef, shouldDisableFocus())
 
   useEffect(() => {
     setInputValue(field.value)
@@ -185,13 +193,12 @@ const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
 
 export const App: React.FC = () => {
   const fields = useFieldStore(selectFields)
-  const [nextFocus] = useFocusCreator()
 
   return (
     <div className="App">
       <AppContainer>
         {fields.map((field) => (
-          <Creator key={field.id} field={field} nextFocus={nextFocus} />
+          <Creator key={field.id} field={field} />
         ))}
       </AppContainer>
     </div>
