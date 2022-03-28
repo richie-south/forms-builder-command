@@ -1,9 +1,25 @@
 import { useEffect } from 'react'
 
-export function useFocus(
+type Options = {
+  disable?: boolean
+  querySelector?: string
+  disableFocusPoint?: boolean
+}
+
+function baseProps(options: Options) {
+  return {
+    disable: options.disable ?? false,
+    querySelector: options.querySelector ?? '.creator-input',
+    disableFocusPoint: options.disableFocusPoint ?? false,
+  }
+}
+
+export function useNextFocus(
   inputRef: React.RefObject<HTMLInputElement>,
-  disable = false
+  _options: Options
 ) {
+  const options = baseProps(_options)
+
   const setFocusPoint = (element: HTMLInputElement) => {
     if (element.selectionStart) {
       const elementContentLength = element.value.length
@@ -16,7 +32,10 @@ export function useFocus(
   }
 
   const nextFocus = (direction: 'ArrowUp' | 'ArrowDown' = 'ArrowUp') => {
-    const inputs = document.querySelectorAll<HTMLInputElement>('.creator-input')
+    const inputs = document.querySelectorAll<
+      HTMLInputElement | HTMLButtonElement
+    >(options.querySelector)
+
     const inputsArray = Array.from(inputs)
     const activeIndex = inputsArray.indexOf(document.activeElement as any)
 
@@ -32,20 +51,27 @@ export function useFocus(
       const nextIndex = activeIndex > 0 ? activeIndex - 1 : 0
 
       const element = inputsArray[nextIndex]
-      setFocusPoint(element)
+
+      if (!options.disableFocusPoint && element.nodeName === 'INPUT') {
+        setFocusPoint(element as HTMLInputElement)
+      }
+
       element.focus()
     } else if (direction === 'ArrowDown') {
       const nextIndex =
         activeIndex + 1 < inputsArray.length ? activeIndex + 1 : activeIndex
 
       const element = inputsArray[nextIndex]
-      setFocusPoint(element)
+      if (!options.disableFocusPoint && element.nodeName === 'INPUT') {
+        setFocusPoint(element as HTMLInputElement)
+      }
+
       element.focus()
     }
   }
 
   useEffect(() => {
-    if (disable) {
+    if (options.disable) {
       return
     }
 
@@ -64,7 +90,7 @@ export function useFocus(
     return () => {
       inputRef.current?.removeEventListener('keydown', onKeyDown)
     }
-  }, [disable])
+  }, [options.disable])
 
   return [nextFocus]
 }
