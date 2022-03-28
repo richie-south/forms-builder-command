@@ -1,4 +1,6 @@
-import styled from 'styled-components'
+import { useEffect, useRef, useState } from 'react'
+import styled, { css } from 'styled-components'
+import { useNextFocus } from '../../hooks/use-next-focus'
 
 const ContextMenuContainer = styled.div`
   background-color: white;
@@ -12,7 +14,9 @@ const ContextMenuContainer = styled.div`
   overflow-y: auto;
 `
 
-const ContextOptionItemContainer = styled.button`
+const ContextOptionItemContainer = styled.button<{
+  selected?: boolean
+}>`
   display: grid;
   grid-auto-columns: 24px 1fr;
   grid-auto-flow: column;
@@ -28,6 +32,12 @@ const ContextOptionItemContainer = styled.button`
   text-align: start;
   appearance: none;
   cursor: pointer;
+
+  ${(props) =>
+    props.selected &&
+    css`
+      background-color: #ebe9ed;
+    `}
 
   :hover {
     background-color: #ebe9ed;
@@ -52,18 +62,70 @@ const options = [
 
 type Props = {
   searchValue?: string
+  onClose: () => void
 }
 
-export const CreatorContextMenu: React.FC<Props> = ({ searchValue = '' }) => {
+export const CreatorContextMenu: React.FC<Props> = ({
+  searchValue = '',
+  onClose,
+}) => {
+  const [selectedIndex, setSelectedIndex] = useState(0)
   const filteredOptions = options.filter((option) =>
     option.label.toLowerCase().includes(searchValue.trim().toLowerCase())
   )
+  const filteredOptionsLength = filteredOptions.length
+
+  const onSelection = () => {
+    /* new creator from selected element */
+  }
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!document.activeElement) {
+        return
+      }
+
+      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        setSelectedIndex((state) => {
+          if (
+            event.key === 'ArrowDown' &&
+            state === filteredOptionsLength - 1
+          ) {
+            return 0
+          } else if (event.key === 'ArrowUp' && state === 0) {
+            return filteredOptionsLength - 1
+          }
+
+          return state + (event.key === 'ArrowUp' ? -1 : 1)
+        })
+      } else if (event.key === 'Enter') {
+        onSelection()
+        onClose()
+      }
+    }
+
+    window?.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      window?.removeEventListener('keydown', onKeyDown)
+    }
+  }, [filteredOptionsLength])
+
+  const handleOptionClick = () => {
+    onSelection()
+    onClose()
+  }
 
   return (
     <ContextMenuContainer>
-      {filteredOptions.map((option) => {
+      {filteredOptions.map((option, index) => {
         return (
-          <ContextOptionItemContainer key={option.type}>
+          <ContextOptionItemContainer
+            className="context-item"
+            key={option.type}
+            selected={selectedIndex === index}
+            onClick={handleOptionClick}
+          >
             <ContextOptionItemIcon className="material-icons">
               {option.icon}
             </ContextOptionItemIcon>
@@ -72,7 +134,14 @@ export const CreatorContextMenu: React.FC<Props> = ({ searchValue = '' }) => {
         )
       })}
 
-      {filteredOptions.length === 0 && <div>No search result</div>}
+      {filteredOptions.length === 0 && (
+        <ContextOptionItemContainer>
+          <ContextOptionItemIcon className="material-icons">
+            search
+          </ContextOptionItemIcon>
+          <ContextOptionItemText>No search result</ContextOptionItemText>
+        </ContextOptionItemContainer>
+      )}
     </ContextMenuContainer>
   )
 }
