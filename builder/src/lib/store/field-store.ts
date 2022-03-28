@@ -21,7 +21,6 @@ export type FieldInputProps = {
 
 type FieldLabelProps = {
   type: 'label'
-  value: string
 } & BaseField
 
 export type Field = FieldCreatorProps | FieldInputProps | FieldLabelProps
