@@ -1,28 +1,27 @@
 import { useEffect, useState } from 'react'
 
-export function useSelectorMenu(inputRef: React.RefObject<HTMLInputElement>) {
-  const [selectorMenuStartIndex, setSelectorMenuStartIndex] =
-    useState<number>(-1)
-  const [showSelectorMenu, setShowSelectorMenu] = useState<boolean>(false)
+export function useContextMenu(inputRef: React.RefObject<HTMLInputElement>) {
+  const [contextMenuStartIndex, setContextMenuStartIndex] = useState<number>(-1)
+  const [showContextMenu, setShowContextMenu] = useState<boolean>(false)
 
   const openContextMenu = () => {
-    setSelectorMenuStartIndex(inputRef.current?.selectionStart ?? -1)
-    setShowSelectorMenu(true)
+    setContextMenuStartIndex(inputRef.current?.selectionStart ?? -1)
+    setShowContextMenu(true)
   }
 
   const closeContextMenu = () => {
-    setSelectorMenuStartIndex(-1)
-    setShowSelectorMenu(false)
+    setContextMenuStartIndex(-1)
+    setShowContextMenu(false)
   }
 
   useEffect(() => {
-    if (!showSelectorMenu) {
+    if (!showContextMenu) {
       return
     }
 
     const cursorPositionChange = () => {
       const position = inputRef.current?.selectionStart ?? -1
-      if (position < selectorMenuStartIndex) {
+      if (position < contextMenuStartIndex) {
         closeContextMenu()
       }
     }
@@ -54,14 +53,14 @@ export function useSelectorMenu(inputRef: React.RefObject<HTMLInputElement>) {
       inputRef.current?.removeEventListener('keyup', onKeyUp)
       inputRef.current?.removeEventListener('keydown', onKeyDown)
     }
-  }, [showSelectorMenu, selectorMenuStartIndex])
+  }, [showContextMenu, contextMenuStartIndex])
 
   const onInputValueChangeContextMenu = (value: string) => {
     const position = (inputRef.current?.selectionStart ?? 1) - 1
 
-    if (value === '/' || (value[position] === '/' && !showSelectorMenu)) {
+    if (value === '/' || (value[position] === '/' && !showContextMenu)) {
       openContextMenu()
-    } else if (showSelectorMenu && value[selectorMenuStartIndex - 1] !== '/') {
+    } else if (showContextMenu && value[contextMenuStartIndex - 1] !== '/') {
       closeContextMenu()
     }
   }
@@ -70,7 +69,7 @@ export function useSelectorMenu(inputRef: React.RefObject<HTMLInputElement>) {
     openContextMenu,
     closeContextMenu,
     onInputValueChangeContextMenu,
-    selectorMenuStartIndex,
-    showSelectorMenu,
+    contextMenuStartIndex,
+    showContextMenu,
   }
 }

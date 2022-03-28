@@ -18,8 +18,8 @@ import {
   CreatorConfigButtons,
 } from './components/creator-styles'
 import { Popover } from 'react-tiny-popover'
-import { CreatorSelectorMenu } from './components/creator-selector-menu/creator-selector-menu'
-import { useSelectorMenu } from './hooks/use-selector-menu'
+import { CreatorContextMenu } from './components/creator-selector-menu/creator-selector-menu'
+import { useContextMenu } from './hooks/use-selector-menu'
 
 const AppContainer = styled.div`
   display: grid;
@@ -27,68 +27,6 @@ const AppContainer = styled.div`
   justify-content: center;
   align-items: center;
 `
-
-type CreatorInputProps = {
-  field: FieldInputProps
-  onFocus: () => void
-  onBlur: () => void
-  nextFocus: () => void
-}
-
-const CreatorInput: React.FC<CreatorInputProps> = ({
-  field,
-  onFocus,
-  onBlur,
-  nextFocus,
-}) => {
-  const [value, setValue] = useState<string>(field.value)
-  const updateField = useFieldStore(selectUpdateField)
-  const removeField = useFieldStore(selectRemoveField)
-  const addField = useFieldStore(selectAddField)
-
-  const handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value
-
-    setValue(value)
-  }
-
-  const handleOnBlur = (event: React.FocusEvent<HTMLInputElement, Element>) => {
-    const updatedField: FieldInputProps = {
-      ...field,
-      value,
-    }
-
-    updateField(updatedField)
-    onBlur()
-  }
-
-  const handleAddField = () => {
-    addField(getCreator(), field.id)
-  }
-
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      handleAddField()
-    } else if (event.key === 'Backspace' && value === '') {
-      nextFocus()
-      removeField(field.id)
-    }
-  }
-
-  return (
-    <input
-      type={field.properties.inputType}
-      value={value}
-      placeholder="Label"
-      onChange={handleValueChange}
-      autoFocus
-      onBlur={handleOnBlur}
-      onFocus={onFocus}
-      onKeyDown={handleKeyDown}
-      className="creator-input"
-    />
-  )
-}
 
 type CreatorProps = {
   field: Field
@@ -102,15 +40,15 @@ const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
   const updatePrevFieldValue = useFieldStore(selectUpdatePrevFieldValue)
 
   const [inputValue, setInputValue] = useState<string>('')
-  const [showButtons, setShowButtons] = useState<boolean>(false)
+  const [focus, setFocus] = useState<boolean>(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const {
     closeContextMenu,
     onInputValueChangeContextMenu,
-    selectorMenuStartIndex,
-    showSelectorMenu,
-  } = useSelectorMenu(inputRef)
+    contextMenuStartIndex,
+    showContextMenu,
+  } = useContextMenu(inputRef)
 
   useEffect(() => {
     setInputValue(field.value)
@@ -126,9 +64,9 @@ const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
     })
   }, [])
 
-  const handleFocus = useCallback(() => {
-    setShowButtons(true)
-  }, [])
+  const handleFocus = () => {
+    setFocus(true)
+  }
 
   const handleBlur = () => {
     const updatedField: Field = {
@@ -137,7 +75,7 @@ const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
     }
 
     updateField(updatedField)
-    setShowButtons(false)
+    setFocus(false)
   }
 
   const handleAddField = () => {
@@ -171,7 +109,7 @@ const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
   }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter' && !showSelectorMenu) {
+    if (event.key === 'Enter' && !showContextMenu) {
       handleAddField()
     } else if (
       event.key === 'Backspace' &&
@@ -192,14 +130,14 @@ const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
   }
 
   const getSelectorMenuSearchValue = (): string => {
-    if (selectorMenuStartIndex === -1) return ''
+    if (contextMenuStartIndex === -1) return ''
 
-    return inputValue.substring(selectorMenuStartIndex, inputValue.length)
+    return inputValue.substring(contextMenuStartIndex, inputValue.length)
   }
 
   return (
     <CreatorContainer>
-      <CreatorButtonsContainer showButtons={showButtons}>
+      <CreatorButtonsContainer showButtons={focus}>
         <CreatorConfigButtons onClick={handleRemove}>
           remove
         </CreatorConfigButtons>
@@ -216,13 +154,13 @@ const Creator: React.FC<CreatorProps> = ({ field, nextFocus }) => {
       )} */}
       {field.type === 'creator' && (
         <Popover
-          isOpen={showSelectorMenu}
+          isOpen={showContextMenu}
           positions={['bottom', 'top']}
           align="center"
           reposition
           onClickOutside={closeContextMenu}
           content={
-            <CreatorSelectorMenu searchValue={getSelectorMenuSearchValue()} />
+            <CreatorContextMenu searchValue={getSelectorMenuSearchValue()} />
           }
         >
           <div>

@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 
-const SelectorMenuContainer = styled.div`
+const ContextMenuContainer = styled.div`
   background-color: white;
   box-shadow: 0px -8px 6px -2px rgb(0 0 0 / 5%),
     0px 10px 15px -3px rgb(0 0 0 / 10%);
@@ -12,7 +12,7 @@ const SelectorMenuContainer = styled.div`
   overflow-y: auto;
 `
 
-const SelectorOptionItemContainer = styled.button`
+const ContextOptionItemContainer = styled.button`
   display: grid;
   grid-auto-columns: 24px 1fr;
   grid-auto-flow: column;
@@ -36,11 +36,11 @@ const SelectorOptionItemContainer = styled.button`
   transition: background-color 100ms linear;
 `
 
-const SelectorOptionItemIcon = styled.div`
+const ContextOptionItemIcon = styled.div`
   color: #99979e;
 `
 
-const SelectorOptionItemText = styled.div``
+const ContextOptionItemText = styled.div``
 
 const options = [
   { type: 'label', icon: 'info', label: 'label' },
@@ -54,25 +54,25 @@ type Props = {
   searchValue?: string
 }
 
-export const CreatorSelectorMenu: React.FC<Props> = ({ searchValue = '' }) => {
+export const CreatorContextMenu: React.FC<Props> = ({ searchValue = '' }) => {
   const filteredOptions = options.filter((option) =>
     option.label.toLowerCase().includes(searchValue.trim().toLowerCase())
   )
 
   return (
-    <SelectorMenuContainer>
+    <ContextMenuContainer>
       {filteredOptions.map((option) => {
         return (
-          <SelectorOptionItemContainer key={option.type}>
-            <SelectorOptionItemIcon className="material-icons">
+          <ContextOptionItemContainer key={option.type}>
+            <ContextOptionItemIcon className="material-icons">
               {option.icon}
-            </SelectorOptionItemIcon>
-            <SelectorOptionItemText>{option.label}</SelectorOptionItemText>
-          </SelectorOptionItemContainer>
+            </ContextOptionItemIcon>
+            <ContextOptionItemText>{option.label}</ContextOptionItemText>
+          </ContextOptionItemContainer>
         )
       })}
 
       {filteredOptions.length === 0 && <div>No search result</div>}
-    </SelectorMenuContainer>
+    </ContextMenuContainer>
   )
 }
