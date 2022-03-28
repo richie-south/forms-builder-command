@@ -10,7 +10,7 @@ import {
   Field,
 } from './lib/store/field-store'
 import styled, { css } from 'styled-components'
-import { useFocus } from './hooks/use-focus'
+import { useNextFocus } from './hooks/use-next-focus'
 import {
   CreatorContainer,
   CreatorButtonsContainer,
@@ -19,6 +19,7 @@ import {
 import { Popover } from 'react-tiny-popover'
 import { CreatorContextMenu } from './components/creator-selector-menu/creator-selector-menu'
 import { useContextMenu } from './hooks/use-selector-menu'
+import { useDisableArrowUpDown } from './hooks/use-disable-arrow-up-down'
 
 const AppContainer = styled.div`
   display: grid;
@@ -56,7 +57,10 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
     return false
   }
 
-  const [nextFocus] = useFocus(inputRef, shouldDisableFocus())
+  useDisableArrowUpDown(inputRef, !showContextMenu)
+  const [nextFocus] = useNextFocus(inputRef, {
+    disable: shouldDisableFocus(),
+  })
 
   useEffect(() => {
     setInputValue(field.value)
@@ -87,6 +91,7 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
   }
 
   const handleAddField = () => {
+    // TODO: add more fields types here.
     if (field.type === 'creator') {
       const splitContent =
         (inputValue.length !== 0 &&
@@ -160,6 +165,7 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
           nextFocus={nextFocus}
         />
       )} */}
+
       {field.type === 'creator' && (
         <Popover
           isOpen={showContextMenu}
@@ -168,7 +174,10 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
           reposition
           onClickOutside={closeContextMenu}
           content={
-            <CreatorContextMenu searchValue={getSelectorMenuSearchValue()} />
+            <CreatorContextMenu
+              searchValue={getSelectorMenuSearchValue()}
+              onClose={closeContextMenu}
+            />
           }
         >
           <div>
