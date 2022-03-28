@@ -1,38 +1,11 @@
 import create from 'zustand'
 import { devtools } from 'zustand/middleware'
-import { v4 as uuidv4 } from 'uuid'
-
-type BaseField = {
-  id: string
-  value: string
-}
-
-type FieldCreatorProps = {
-  type: 'creator'
-} & BaseField
-
-export type FieldInputProps = {
-  type: 'input'
-  properties: {
-    validation: 'email' | 'phone' | 'none'
-    inputType: 'text' | 'number'
-  }
-} & BaseField
-
-type FieldLabelProps = {
-  type: 'label'
-} & BaseField
-
-export type Field = FieldCreatorProps | FieldInputProps | FieldLabelProps
-
-export const getCreator = (value = ''): Field => ({
-  id: uuidv4(),
-  type: 'creator',
-  value,
-})
+import { Field } from '../../types'
+import { getNewTextField } from '../field-creator'
 
 type FieldStoreState = {
   fields: Field[]
+  replaceField: (id: string, field: Field) => void
   addField: (field: Field, insertAfterId?: string) => void
   removeField: (id: string) => void
 
@@ -45,9 +18,10 @@ export const useFieldStore = create<FieldStoreState>(
     (set) => ({
       fields: [
         {
-          id: 'creator',
-          type: 'creator',
+          id: 'text',
+          type: 'text',
           value: '',
+          weight: 'normal',
         },
         /*  {
           id: 'asads',
@@ -74,13 +48,19 @@ export const useFieldStore = create<FieldStoreState>(
               ...state,
               fields: [...state.fields, field],
             })),
+      replaceField: (id, field) => {
+        set((state) => ({
+          ...state,
+          fields: state.fields.map((f) => (f.id === id ? field : f)),
+        }))
+      },
       removeField: (id) => {
         set((state) => {
           if (state.fields.length === 1) {
-            if (state.fields[0].type !== 'creator') {
+            if (state.fields[0].type !== 'text') {
               return {
                 ...state,
-                fields: [getCreator()],
+                fields: [getNewTextField()],
               }
             } else {
               return state
@@ -134,6 +114,7 @@ export const selectField = (id: string) => (state: FieldStoreState) =>
 export const selectFields = (state: FieldStoreState) => state.fields
 export const selectNrOfFields = (state: FieldStoreState) => state.fields.length
 export const selectAddField = (state: FieldStoreState) => state.addField
+export const selectReplaceField = (state: FieldStoreState) => state.replaceField
 export const selectRemoveField = (state: FieldStoreState) => state.removeField
 export const selectUpdateField = (state: FieldStoreState) => state.updateField
 export const selectUpdatePrevFieldValue = (state: FieldStoreState) =>

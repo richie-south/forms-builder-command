@@ -4,12 +4,10 @@ import {
   selectFields,
   selectAddField,
   selectRemoveField,
-  getCreator,
   selectUpdateField,
   selectUpdatePrevFieldValue,
-  Field,
 } from './lib/store/field-store'
-import styled, { css } from 'styled-components'
+import styled from 'styled-components'
 import { useNextFocus } from './hooks/use-next-focus'
 import {
   CreatorContainer,
@@ -17,9 +15,11 @@ import {
   CreatorConfigButtons,
 } from './components/creator-styles'
 import { Popover } from 'react-tiny-popover'
-import { CreatorContextMenu } from './components/creator-selector-menu/creator-selector-menu'
+import { CreatorContextMenu } from './components/context-menu/context-menu'
 import { useContextMenu } from './hooks/use-selector-menu'
 import { useDisableArrowUpDown } from './hooks/use-disable-arrow-up-down'
+import { Field } from './types'
+import { getNewTextField } from './lib/field-creator'
 
 const AppContainer = styled.div`
   display: grid;
@@ -90,9 +90,19 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
     setFocus(false)
   }
 
-  const handleAddField = () => {
-    // TODO: add more fields types here.
-    if (field.type === 'creator') {
+  const handleAddFieldOnEnter = () => {
+    const allowedFields = [
+      'input',
+      'input-long',
+      'text',
+      'label',
+      'heading1',
+      'heading2',
+      'heading3',
+      'divider',
+    ]
+
+    if (allowedFields.includes(field.type)) {
       const splitContent =
         (inputValue.length !== 0 &&
           inputRef.current?.selectionStart !== 0 &&
@@ -105,9 +115,9 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
         const nextContent = inputValue.slice(splitIndex)
         const updateCurentContent = inputValue.substring(0, splitIndex)
         setInputValue(updateCurentContent)
-        addField(getCreator(nextContent), field.id)
+        addField(getNewTextField(nextContent), field.id)
       } else {
-        addField(getCreator(), field.id)
+        addField(getNewTextField(), field.id)
       }
     }
   }
@@ -123,7 +133,7 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !showContextMenu) {
-      handleAddField()
+      handleAddFieldOnEnter()
     } else if (
       event.key === 'Backspace' &&
       inputRef.current?.selectionStart === 0 &&
@@ -148,6 +158,10 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
     return inputValue.substring(contextMenuStartIndex, inputValue.length)
   }
 
+  const onCreateFieldFromContextMenu = () => {
+    closeContextMenu()
+  }
+
   return (
     <CreatorContainer>
       <CreatorButtonsContainer showButtons={focus}>
@@ -157,16 +171,7 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
         <CreatorConfigButtons>add</CreatorConfigButtons>
       </CreatorButtonsContainer>
 
-      {/* {field.type === 'input' && (
-        <CreatorInput
-          field={field}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          nextFocus={nextFocus}
-        />
-      )} */}
-
-      {field.type === 'creator' && (
+      {field.type === 'text' && (
         <Popover
           isOpen={showContextMenu}
           positions={['bottom', 'top']}
@@ -175,8 +180,9 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
           onClickOutside={closeContextMenu}
           content={
             <CreatorContextMenu
+              fieldId={field.id}
               searchValue={getSelectorMenuSearchValue()}
-              onClose={closeContextMenu}
+              onCreateField={onCreateFieldFromContextMenu}
             />
           }
         >
@@ -204,12 +210,10 @@ export const App: React.FC = () => {
   const fields = useFieldStore(selectFields)
 
   return (
-    <div className="App">
-      <AppContainer>
-        {fields.map((field) => (
-          <Creator key={field.id} field={field} />
-        ))}
-      </AppContainer>
-    </div>
+    <AppContainer>
+      {fields.map((field) => (
+        <Creator key={field.id} field={field} />
+      ))}
+    </AppContainer>
   )
 }
