@@ -8,16 +8,13 @@ import {
 } from '../../lib/store/field-store'
 import styled from 'styled-components'
 import { useNextFocus } from '../../hooks/use-next-focus'
-import { Popover } from 'react-tiny-popover'
-import { CreatorContextMenu } from '../../components/context-menu/context-menu'
-import { useContextMenu } from '../../hooks/use-context-menu'
-import { useDisableArrowUpDown } from '../../hooks/use-disable-arrow-up-down'
 import { Field } from '../../types'
 import { getNewTextField } from '../../lib/field-creator'
 import ContentEditable from 'react-contenteditable'
 import { useRefCallback } from '../../hooks/use-ref-callback'
 import { useInitialFocus } from '../../hooks/use-common-field'
 import { getCursorEndPosition, getCursorStartPosition } from '../../lib/cursor'
+import { clearHtml } from '../../lib/clear-html'
 import { placeholderFocusCss } from '../style'
 
 const FakeInput = styled(ContentEditable)<{
@@ -33,10 +30,20 @@ const FakeInput = styled(ContentEditable)<{
   overflow-wrap: break-word;
   line-break: after-white-space;
 
-  width: 200px;
-  min-height: 28px;
-  line-height: 26px;
+  width: 300px;
+  line-height: 36px;
   cursor: text;
+
+  height: 36px;
+  padding: 0px 10px;
+  box-shadow: rgb(0 0 0 / 0%) 0px 0px 0px 0px, rgb(0 0 0 / 0%) 0px 0px 0px 0px,
+    rgb(0 0 0 / 12%) 0px 1px 1px 0px, rgb(60 66 87 / 16%) 0px 0px 0px 1px,
+    rgb(0 0 0 / 0%) 0px 0px 0px 0px, rgb(0 0 0 / 0%) 0px 0px 0px 0px,
+    rgb(60 66 87 / 8%) 0px 2px 5px 0px;
+  border: 0px;
+  border-radius: 4px;
+  background-color: white;
+  color: #99979e;
 
   ${placeholderFocusCss}
 `
@@ -51,7 +58,7 @@ type CreatorProps = {
   setFocus: (focus: boolean) => void
 }
 
-export const TextField: React.FC<CreatorProps> = ({
+export const InputShortField: React.FC<CreatorProps> = ({
   field,
   focus,
   setFocus,
@@ -60,36 +67,20 @@ export const TextField: React.FC<CreatorProps> = ({
   const updateField = useFieldStore(selectUpdateField)
   const removeField = useFieldStore(selectRemoveField)
   const updatePrevFieldValue = useFieldStore(selectUpdatePrevFieldValue)
-
   const [inputValue, setInputValue] = useState<string>('')
-
   const inputRef = useRef<ContentEditable>(null)
 
-  const {
-    closeContextMenu,
-    onInputValueChangeContextMenu,
-    contextMenuStartIndex,
-    showContextMenu,
-  } = useContextMenu(inputRef)
-
-  const shouldDisableFocus = () => {
-    if (showContextMenu || !focus) return true
-    return false
-  }
-
   useInitialFocus(inputRef, field.value)
-  useDisableArrowUpDown(inputRef, !showContextMenu)
   const [nextFocus] = useNextFocus(inputRef, {
-    disable: shouldDisableFocus(),
+    disable: !focus,
   })
-
   useEffect(() => {
     setInputValue(field.value)
   }, [field.value])
 
   const handleAddFieldOnEnter = () => {
     const allowedFields = [
-      'input',
+      'input-short',
       'input-long',
       'text',
       'label',
@@ -129,10 +120,7 @@ export const TextField: React.FC<CreatorProps> = ({
 
   const handleKeyDown = useRefCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.shiftKey && event.key === 'Enter' && !showContextMenu) {
-        /** allow multiline */
-        // TODO: handle navigation for multiline
-      } else if (event.key === 'Enter' && !showContextMenu) {
+      if (event.key === 'Enter') {
         event.preventDefault()
         handleAddFieldOnEnter()
       } else if (
@@ -152,11 +140,12 @@ export const TextField: React.FC<CreatorProps> = ({
   }
 
   const handleBlur = useRefCallback(() => {
+    const value = clearHtml(inputValue)
     const updatedField: Field = {
       ...field,
-      value: inputValue,
+      value: value,
     }
-
+    setInputValue(value)
     updateField(updatedField)
     setFocus(false)
   }, [inputValue, field])
@@ -164,53 +153,24 @@ export const TextField: React.FC<CreatorProps> = ({
   const handleCreatorInputValueChange = (
     event: React.FormEvent<HTMLDivElement>
   ) => {
-    setInputValue(event.currentTarget.innerHTML)
-    onInputValueChangeContextMenu()
-  }
-
-  const getSelectorMenuSearchValue = (): string => {
-    if (contextMenuStartIndex === -1) return ''
-
-    const selection = window.getSelection()
-    const value = selection?.focusNode?.textContent ?? ''
-
-    return value.substring(contextMenuStartIndex, value.length)
-  }
-
-  const onCreateFieldFromContextMenu = () => {
-    closeContextMenu()
+    setInputValue(event.currentTarget.textContent ?? '')
   }
 
   return (
-    <Popover
-      isOpen={showContextMenu}
-      positions={['bottom', 'top']}
-      align="start"
-      reposition
-      onClickOutside={closeContextMenu}
-      content={
-        <CreatorContextMenu
-          fieldId={field.id}
-          searchValue={getSelectorMenuSearchValue()}
-          onCreateField={onCreateFieldFromContextMenu}
-        />
-      }
-    >
-      <Container>
-        <FakeInput
-          ref={inputRef}
-          html={inputValue}
-          contentEditable={true}
-          tabIndex={0}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onChange={handleCreatorInputValueChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Type '/' to insert blocks"
-          className="creator-input"
-          focus={focus}
-        />
-      </Container>
-    </Popover>
+    <Container>
+      <FakeInput
+        ref={inputRef}
+        html={inputValue}
+        contentEditable={true}
+        tabIndex={0}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onChange={handleCreatorInputValueChange}
+        onKeyDown={handleKeyDown}
+        placeholder="Type placeholder text"
+        className="creator-input"
+        focus={focus}
+      />
+    </Container>
   )
 }

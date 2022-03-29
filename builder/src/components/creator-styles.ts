@@ -1,11 +1,21 @@
 import styled, { css } from 'styled-components'
+import { placeholderInputCss } from './style'
 
 export const CreatorContainer = styled.div`
   display: grid;
   grid-template-columns: 62px 1fr;
   grid-gap: 6px;
   padding-top: 2px;
-  padding-bottom: 7px;
+  padding-bottom: 2px;
+  width: 900px;
+
+  :hover {
+    .material-icons {
+      display: flex;
+    }
+
+    ${placeholderInputCss}
+  }
 `
 
 type CreatorButtonsContainerProps = {
@@ -26,10 +36,4 @@ export const CreatorButtonsContainer = styled.div<CreatorButtonsContainerProps>`
         display: none;
       }
     `}
-
-  ${CreatorContainer}:hover & {
-    .material-icons {
-      display: flex;
-    }
-  }
 `

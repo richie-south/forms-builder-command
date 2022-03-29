@@ -12,6 +12,7 @@ import {
 import { Field } from './types'
 import { Icon } from './components/icon/icon'
 import { TextField } from './components/text-field/text-field'
+import { InputShortField } from './components/input-short-field/input-short-field'
 
 const AppContainer = styled.div`
   display: grid;
@@ -45,6 +46,9 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
 
       {field.type === 'text' && (
         <TextField setFocus={setFocus} focus={focus} field={field} />
+      )}
+      {field.type === 'input-short' && (
+        <InputShortField setFocus={setFocus} focus={focus} field={field} />
       )}
     </CreatorContainer>
   )

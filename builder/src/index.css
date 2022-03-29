@@ -12,9 +12,10 @@ body {
   padding: 0;
 }
 
-[contenteditable][placeholder]:empty:before {
+/* [contenteditable][placeholder]:empty:before {
   content: attr(placeholder);
   position: absolute;
-  color: gray;
+  color: #99979E;
   background-color: transparent;
 }
+ */
