@@ -21,6 +21,23 @@ import { useDisableArrowUpDown } from './hooks/use-disable-arrow-up-down'
 import { Field } from './types'
 import { getNewTextField } from './lib/field-creator'
 
+const FakeInput = styled.div`
+  outline: none;
+  color: rgb(55, 53, 47);
+  caret-color: rgb(55, 53, 47);
+  white-space: pre-wrap;
+  word-break: break-word;
+
+  -webkit-user-modify: read-write;
+  overflow-wrap: break-word;
+  -webkit-line-break: after-white-space;
+
+  min-height: 30px;
+  width: 200px;
+  line-height: 1.5;
+  padding: 3px 0px;
+`
+
 const AppContainer = styled.div`
   display: grid;
   height: 100%;
@@ -76,7 +93,20 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
     })
   }, [])
 
+  const placeCaret = (position: number) => {
+    const root = inputRef.current
+    const selection = window.getSelection()
+    const range = selection?.getRangeAt(0)
+    const node: any = root?.firstChild?.firstChild ?? root?.firstChild
+
+    range?.setStart(node, position)
+  }
+
   const handleFocus = () => {
+    const root = inputRef.current
+
+    placeCaret(root?.innerText.length ?? 0)
+
     setFocus(true)
   }
 
@@ -132,7 +162,10 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
   }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter' && !showContextMenu) {
+    if (event.shiftKey && event.key === 'Enter' && !showContextMenu) {
+      console.log(event)
+    } else if (event.key === 'Enter' && !showContextMenu) {
+      event.preventDefault()
       handleAddFieldOnEnter()
     } else if (
       event.key === 'Backspace' &&
@@ -144,12 +177,13 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
     }
   }
 
-  const handleCreatorInputValueChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = event.target.value
+  const handleCreatorInputValueChange = (event: any) => {
+    const root = inputRef.current
+    const value = root?.innerHTML ?? ''
     setInputValue(value)
-    onInputValueChangeContextMenu(value)
+    setTimeout(() => {
+      placeCaret(root?.innerText.length ?? 0)
+    }, 0)
   }
 
   const getSelectorMenuSearchValue = (): string => {
@@ -187,18 +221,22 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
           }
         >
           <div>
-            <input
+            <FakeInput
               ref={inputRef}
-              type="text"
-              autoFocus
+              /* type="text" */
+              contentEditable={true}
+              /* autoFocus */
+              tabIndex={0}
               onFocus={handleFocus}
               onBlur={handleBlur}
-              value={inputValue}
-              onChange={handleCreatorInputValueChange}
+              onInput={handleCreatorInputValueChange}
+              /* value={inputValue} */
+              /* onChange={handleCreatorInputValueChange} */
               onKeyDown={handleKeyDown}
               placeholder="Type '/' to insert blocks"
               className="creator-input"
-            />
+              dangerouslySetInnerHTML={{ __html: inputValue }}
+            ></FakeInput>
           </div>
         </Popover>
       )}
@@ -217,3 +255,5 @@ export const App: React.FC = () => {
     </AppContainer>
   )
 }
+
+/* suppressContentEditableWarning={true} */
