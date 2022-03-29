@@ -14,6 +14,7 @@ export const ContextMenuContainer = styled.div`
 
 export const ContextOptionItemContainer = styled.button<{
   selected?: boolean
+  static?: boolean
 }>`
   display: grid;
   grid-auto-columns: 20px 1fr;
@@ -29,7 +30,6 @@ export const ContextOptionItemContainer = styled.button<{
   border: none;
   text-align: start;
   appearance: none;
-  cursor: pointer;
 
   ${(props) =>
     props.selected &&
@@ -37,9 +37,15 @@ export const ContextOptionItemContainer = styled.button<{
       background-color: #ebe9ed;
     `}
 
-  :hover {
-    background-color: #ebe9ed;
-  }
+  ${(props) =>
+    !props.static &&
+    css`
+      cursor: pointer;
+      :hover {
+        background-color: #ebe9ed;
+      }
+    `}
+
 
   transition: background-color 100ms linear;
 `

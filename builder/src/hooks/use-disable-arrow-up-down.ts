@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
+import ContentEditable from 'react-contenteditable'
 
 export function useDisableArrowUpDown(
-  inputRef: React.RefObject<HTMLInputElement>,
+  inputRef: React.RefObject<ContentEditable>,
   disable = true
 ) {
   useEffect(() => {
@@ -20,10 +21,10 @@ export function useDisableArrowUpDown(
       event.preventDefault()
     }
 
-    inputRef.current?.addEventListener('keydown', onKeyDown)
+    inputRef.current?.el?.current?.addEventListener('keydown', onKeyDown)
 
     return () => {
-      inputRef.current?.removeEventListener('keydown', onKeyDown)
+      inputRef.current?.el?.current?.removeEventListener('keydown', onKeyDown)
     }
   }, [disable])
 }

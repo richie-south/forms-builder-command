@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import ContentEditable from 'react-contenteditable'
 
 type Options = {
   disable?: boolean
@@ -15,20 +16,22 @@ function baseProps(options: Options) {
 }
 
 export function useNextFocus(
-  inputRef: React.RefObject<HTMLInputElement>,
+  inputRef: React.RefObject<ContentEditable>,
   _options: Options
 ) {
   const options = baseProps(_options)
 
   const setFocusPoint = (element: HTMLInputElement) => {
-    if (element.selectionStart) {
-      const elementContentLength = element.value.length
-      setTimeout(() => {
-        element.setSelectionRange(elementContentLength, elementContentLength)
-        element.selectionStart = elementContentLength
-        element.selectionEnd = elementContentLength
-      })
-    }
+    const elementContentLength = (element.textContent ?? '').length
+
+    setTimeout(() => {
+      const setpos = document.createRange()
+      const set = window.getSelection()
+      setpos.setStart(element.childNodes[0], elementContentLength)
+      setpos.collapse(true)
+      set?.removeAllRanges()
+      set?.addRange(setpos)
+    })
   }
 
   const nextFocus = (direction: 'ArrowUp' | 'ArrowDown' = 'ArrowUp') => {
@@ -52,7 +55,10 @@ export function useNextFocus(
 
       const element = inputsArray[nextIndex]
 
-      if (!options.disableFocusPoint && element.nodeName === 'INPUT') {
+      if (
+        !options.disableFocusPoint &&
+        element.className.includes(options.querySelector.replace('.', ''))
+      ) {
         setFocusPoint(element as HTMLInputElement)
       }
 
@@ -62,7 +68,11 @@ export function useNextFocus(
         activeIndex + 1 < inputsArray.length ? activeIndex + 1 : activeIndex
 
       const element = inputsArray[nextIndex]
-      if (!options.disableFocusPoint && element.nodeName === 'INPUT') {
+
+      if (
+        !options.disableFocusPoint &&
+        element.className.includes(options.querySelector.replace('.', ''))
+      ) {
         setFocusPoint(element as HTMLInputElement)
       }
 
@@ -85,10 +95,10 @@ export function useNextFocus(
       nextFocus(event.key)
     }
 
-    inputRef.current?.addEventListener('keydown', onKeyDown)
+    inputRef.current?.el?.current.addEventListener('keydown', onKeyDown)
 
     return () => {
-      inputRef.current?.removeEventListener('keydown', onKeyDown)
+      inputRef.current?.el?.current.removeEventListener('keydown', onKeyDown)
     }
   }, [options.disable])
 
