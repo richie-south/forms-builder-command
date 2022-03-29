@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
+import ContentEditable from 'react-contenteditable'
 
-export function useContextMenu(inputRef: React.RefObject<HTMLInputElement>) {
+export function useContextMenu(inputRef: React.RefObject<ContentEditable>) {
   const [contextMenuStartIndex, setContextMenuStartIndex] = useState<number>(-1)
   const [showContextMenu, setShowContextMenu] = useState<boolean>(false)
 
   const openContextMenu = () => {
-    setContextMenuStartIndex(inputRef.current?.selectionStart ?? -1)
+    const selection = window.getSelection()
+    const position = selection?.getRangeAt(0)?.startOffset ?? -1
+
+    setContextMenuStartIndex(position)
     setShowContextMenu(true)
   }
 
@@ -20,7 +24,8 @@ export function useContextMenu(inputRef: React.RefObject<HTMLInputElement>) {
     }
 
     const cursorPositionChange = () => {
-      const position = inputRef.current?.selectionStart ?? -1
+      const selection = window.getSelection()
+      const position = (selection?.getRangeAt(0)?.startOffset ?? 1) - 1
       if (position < contextMenuStartIndex) {
         closeContextMenu()
       }
@@ -44,19 +49,27 @@ export function useContextMenu(inputRef: React.RefObject<HTMLInputElement>) {
       closeContextMenu()
     }
 
-    inputRef.current?.addEventListener('click', cursorPositionChange)
-    inputRef.current?.addEventListener('keyup', onKeyUp)
-    inputRef.current?.addEventListener('keydown', onKeyDown)
+    inputRef.current?.el?.current?.addEventListener(
+      'click',
+      cursorPositionChange
+    )
+    inputRef.current?.el?.current?.addEventListener('keyup', onKeyUp)
+    inputRef.current?.el?.current?.addEventListener('keydown', onKeyDown)
 
     return () => {
-      inputRef.current?.removeEventListener('click', cursorPositionChange)
-      inputRef.current?.removeEventListener('keyup', onKeyUp)
-      inputRef.current?.removeEventListener('keydown', onKeyDown)
+      inputRef.current?.el?.current?.removeEventListener(
+        'click',
+        cursorPositionChange
+      )
+      inputRef.current?.el?.current?.removeEventListener('keyup', onKeyUp)
+      inputRef.current?.el?.current?.removeEventListener('keydown', onKeyDown)
     }
   }, [showContextMenu, contextMenuStartIndex])
 
-  const onInputValueChangeContextMenu = (value: string) => {
-    const position = (inputRef.current?.selectionStart ?? 1) - 1
+  const onInputValueChangeContextMenu = () => {
+    const selection = window.getSelection()
+    const value = selection?.focusNode?.textContent ?? ''
+    const position = (selection?.getRangeAt(0)?.startOffset ?? 1) - 1
 
     if (value === '/' || (value[position] === '/' && !showContextMenu)) {
       openContextMenu()

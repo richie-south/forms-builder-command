@@ -214,7 +214,7 @@ export const CreatorContextMenu: React.FC<Props> = ({
         })}
 
       {optionsLength === 0 && (
-        <ContextOptionItemContainer>
+        <ContextOptionItemContainer static>
           <ContextOptionItemIcon className="material-icons">
             search
           </ContextOptionItemIcon>
