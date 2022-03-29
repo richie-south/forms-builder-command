@@ -1,1 +1,5 @@
-"@imbox/eslint-config-imbox/prettier"
+{
+  "parser": "typescript",
+  "singleQuote": true,
+  "semi": false
+}
