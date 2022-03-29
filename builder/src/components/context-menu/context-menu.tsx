@@ -3,6 +3,7 @@ import { isChildOverflowing } from '../../lib/element-overflow'
 import { fieldCreatorMap } from '../../lib/field-creator'
 import { selectReplaceField, useFieldStore } from '../../lib/store/field-store'
 import { FieldTypes } from '../../types'
+import { Icon } from '../icon/icon'
 import {
   ContextMenuContainer,
   ContextOptionItemContainer,
@@ -200,9 +201,7 @@ export const CreatorContextMenu: React.FC<Props> = ({
                     selected={selectedIndex === globalIndex - 1}
                     onClick={handleOptionClick}
                   >
-                    <ContextOptionItemIcon className="material-icons">
-                      {option.icon}
-                    </ContextOptionItemIcon>
+                    <Icon mass="medium">{option.icon}</Icon>
                     <ContextOptionItemText>
                       {option.label}
                     </ContextOptionItemText>

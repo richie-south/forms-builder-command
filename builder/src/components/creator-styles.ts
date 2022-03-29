@@ -2,11 +2,11 @@ import styled, { css } from 'styled-components'
 
 export const CreatorContainer = styled.div`
   display: grid;
-  grid-template-columns: 114px 1fr;
-  grid-gap: 16px;
+  grid-template-columns: 62px 1fr;
+  grid-gap: 6px;
+  padding-top: 2px;
+  padding-bottom: 7px;
 `
-
-export const CreatorConfigButtons = styled.div``
 
 type CreatorButtonsContainerProps = {
   showButtons: boolean
@@ -15,19 +15,21 @@ type CreatorButtonsContainerProps = {
 export const CreatorButtonsContainer = styled.div<CreatorButtonsContainerProps>`
   display: grid;
   grid-auto-flow: column;
-  grid-gap: 8px;
+  justify-content: center;
+  align-items: flex-start;
+  grid-gap: 4px;
 
   ${(props) =>
     !props.showButtons &&
     css`
-      ${CreatorConfigButtons} {
+      .material-icons {
         display: none;
       }
     `}
 
   ${CreatorContainer}:hover & {
-    ${CreatorConfigButtons} {
-      display: block;
+    .material-icons {
+      display: flex;
     }
   }
 `

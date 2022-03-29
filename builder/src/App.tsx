@@ -12,7 +12,6 @@ import { useNextFocus } from './hooks/use-next-focus'
 import {
   CreatorContainer,
   CreatorButtonsContainer,
-  CreatorConfigButtons,
 } from './components/creator-styles'
 import { Popover } from 'react-tiny-popover'
 import { CreatorContextMenu } from './components/context-menu/context-menu'
@@ -22,6 +21,7 @@ import { Field } from './types'
 import { getNewTextField } from './lib/field-creator'
 import ContentEditable from 'react-contenteditable'
 import { useRefCallback } from './hooks/use-ref-callback'
+import { Icon } from './components/icon/icon'
 
 function getCursorStartPosition(): number {
   try {
@@ -53,6 +53,9 @@ const FakeInput = styled(ContentEditable)`
   -webkit-line-break: after-white-space;
 
   width: 200px;
+  min-height: 28px;
+  line-height: 26px;
+  cursor: text;
 `
 
 const AppContainer = styled.div`
@@ -114,22 +117,17 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
     setFocus(true)
   }
 
-  const handleBlur = useRefCallback(
-    (event: React.FocusEvent<HTMLDivElement, Element>) => {
-      const updatedField: Field = {
-        ...field,
-        value: inputValue,
-      }
+  const handleBlur = useRefCallback(() => {
+    const updatedField: Field = {
+      ...field,
+      value: inputValue,
+    }
 
-      updateField(updatedField)
-      setFocus(false)
-    },
-    [inputValue]
-  )
+    updateField(updatedField)
+    setFocus(false)
+  }, [inputValue])
 
-  const handleAddFieldOnEnter = (
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
+  const handleAddFieldOnEnter = () => {
     const allowedFields = [
       'input',
       'input-long',
@@ -172,10 +170,11 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
   const handleKeyDown = useRefCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.shiftKey && event.key === 'Enter' && !showContextMenu) {
-        console.log(event)
+        /** allow multiline */
+        // TODO: handle navigation for multi line
       } else if (event.key === 'Enter' && !showContextMenu) {
         event.preventDefault()
-        handleAddFieldOnEnter(event)
+        handleAddFieldOnEnter()
       } else if (
         event.key === 'Backspace' &&
         getCursorStartPosition() === 0 &&
@@ -211,10 +210,12 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
   return (
     <CreatorContainer>
       <CreatorButtonsContainer showButtons={focus}>
-        <CreatorConfigButtons onClick={handleRemove}>
-          remove
-        </CreatorConfigButtons>
-        <CreatorConfigButtons>add</CreatorConfigButtons>
+        <Icon type="default" mass="large" onClick={handleRemove} pointer plate>
+          delete_outline
+        </Icon>
+        <Icon type="default" mass="large" pointer plate>
+          add
+        </Icon>
       </CreatorButtonsContainer>
 
       {field.type === 'text' && (
