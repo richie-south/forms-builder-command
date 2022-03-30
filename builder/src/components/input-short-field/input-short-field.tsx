@@ -8,7 +8,7 @@ import {
 } from '../../lib/store/field-store'
 import styled from 'styled-components'
 import { useNextFocus } from '../../hooks/use-next-focus'
-import { Field } from '../../types'
+import { Field, FieldInputShort } from '../../types'
 import { getNewTextField } from '../../lib/field-creator'
 import ContentEditable from 'react-contenteditable'
 import { useRefCallback } from '../../hooks/use-ref-callback'
@@ -16,6 +16,7 @@ import { useInitialFocus } from '../../hooks/use-common-field'
 import { getCursorEndPosition, getCursorStartPosition } from '../../lib/cursor'
 import { clearHtml } from '../../lib/clear-html'
 import { placeholderFocusCss } from '../style'
+import { Icon } from '../icon/icon'
 
 const FakeInput = styled(ContentEditable)<{
   focus: boolean
@@ -28,8 +29,16 @@ const FakeInput = styled(ContentEditable)<{
 
   -webkit-user-modify: read-write;
   overflow-wrap: break-word;
-  line-break: after-white-space;
 
+  width: 264px;
+  min-height: 28px;
+  line-height: 26px;
+
+  cursor: text;
+  ${placeholderFocusCss}
+`
+
+const VisualInput = styled.div`
   width: 300px;
   line-height: 36px;
   cursor: text;
@@ -45,7 +54,18 @@ const FakeInput = styled(ContentEditable)<{
   background-color: white;
   color: #99979e;
 
-  ${placeholderFocusCss}
+  display: grid;
+  align-items: center;
+  grid-auto-flow: column;
+  grid-template-columns: 1fr 24px;
+  grid-gap: 12px;
+
+  :hover {
+    box-shadow: rgb(0 0 0 / 0%) 0px 0px 0px 0px, rgb(0 0 0 / 0%) 0px 0px 0px 0px,
+      rgb(0 0 0 / 12%) 0px 1px 1px 0px, rgb(60 66 87 / 16%) 0px 0px 0px 1px,
+      rgb(0 0 0 / 0%) 0px 0px 0px 0px, rgb(60 66 87 / 8%) 0px 3px 9px 0px,
+      rgb(60 66 87 / 8%) 0px 2px 5px 0px;
+  }
 `
 
 const Container = styled.div`
@@ -53,7 +73,7 @@ const Container = styled.div`
 `
 
 type CreatorProps = {
-  field: Field
+  field: FieldInputShort
   focus: boolean
   setFocus: (focus: boolean) => void
 }
@@ -70,7 +90,7 @@ export const InputShortField: React.FC<CreatorProps> = ({
   const [inputValue, setInputValue] = useState<string>('')
   const inputRef = useRef<ContentEditable>(null)
 
-  useInitialFocus(inputRef, field.value)
+  useInitialFocus(inputRef, field.value, focus)
   const [nextFocus] = useNextFocus(inputRef, {
     disable: !focus,
   })
@@ -156,21 +176,37 @@ export const InputShortField: React.FC<CreatorProps> = ({
     setInputValue(event.currentTarget.textContent ?? '')
   }
 
+  const getIcon = (): string => {
+    switch (field.variant) {
+      case 'email':
+        return 'alternate_email'
+      case 'number':
+        return 'tag'
+      case 'phone':
+        return 'call'
+      case 'text':
+        return 'short_text'
+    }
+  }
+
   return (
     <Container>
-      <FakeInput
-        ref={inputRef}
-        html={inputValue}
-        contentEditable={true}
-        tabIndex={0}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        onChange={handleCreatorInputValueChange}
-        onKeyDown={handleKeyDown}
-        placeholder="Type placeholder text"
-        className="creator-input"
-        focus={focus}
-      />
+      <VisualInput>
+        <FakeInput
+          ref={inputRef}
+          html={inputValue}
+          contentEditable={true}
+          tabIndex={0}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onChange={handleCreatorInputValueChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Type placeholder text"
+          className="creator-input"
+          focus={focus}
+        />
+        <Icon>{getIcon()}</Icon>
+      </VisualInput>
     </Container>
   )
 }

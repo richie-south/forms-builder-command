@@ -1,7 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { isChildOverflowing } from '../../lib/element-overflow'
 import { fieldCreatorMap } from '../../lib/field-creator'
-import { selectReplaceField, useFieldStore } from '../../lib/store/field-store'
+import {
+  selectAddField,
+  selectReplaceField,
+  useFieldStore,
+} from '../../lib/store/field-store'
 import { FieldTypes } from '../../types'
 import { Icon } from '../icon/icon'
 import {
@@ -36,7 +40,7 @@ const options: OptionSection[] = [
       },
       { type: 'input-long', icon: 'subject', label: 'Long answer' },
 
-      { type: 'input-short', variant: 'number', icon: '123', label: 'Number' },
+      { type: 'input-short', variant: 'number', icon: 'tag', label: 'Number' },
       {
         type: 'input-short',
         variant: 'email',
@@ -67,17 +71,20 @@ const options: OptionSection[] = [
 type Props = {
   searchValue?: string
   fieldId: string
+  fieldValue: string
   onCreateField: () => void
 }
 
 export const CreatorContextMenu: React.FC<Props> = ({
   searchValue = '',
   fieldId,
+  fieldValue,
   onCreateField,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const replaceField = useFieldStore(selectReplaceField)
+  const addField = useFieldStore(selectAddField)
 
   const searchOptions = (options: OptionSection[]): OptionSection[] => {
     return options.reduce((sections, currentSection) => {
@@ -121,8 +128,13 @@ export const CreatorContextMenu: React.FC<Props> = ({
     }
 
     onCreateField()
+
     const field = fieldCreator('', variant)
-    replaceField(fieldId, field)
+    if (fieldValue.replace('/', '').trim() === '') {
+      replaceField(fieldId, field)
+    } else {
+      addField(field, fieldId)
+    }
   }
 
   const scrollToElement = (id: number) => {
@@ -166,6 +178,7 @@ export const CreatorContextMenu: React.FC<Props> = ({
       if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
         updateSelectedIndex(event.key)
       } else if (event.key === 'Enter') {
+        event.preventDefault()
         onSelection()
       }
     }
@@ -175,7 +188,7 @@ export const CreatorContextMenu: React.FC<Props> = ({
     return () => {
       window?.removeEventListener('keydown', onKeyDown)
     }
-  }, [optionsLength, selectedIndex])
+  }, [optionsLength, selectedIndex, fieldValue])
 
   const handleOptionClick = () => {
     onSelection()

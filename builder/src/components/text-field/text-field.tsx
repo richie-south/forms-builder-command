@@ -31,7 +31,6 @@ const FakeInput = styled(ContentEditable)<{
 
   -webkit-user-modify: read-write;
   overflow-wrap: break-word;
-  line-break: after-white-space;
 
   width: 200px;
   min-height: 28px;
@@ -68,7 +67,8 @@ export const TextField: React.FC<CreatorProps> = ({
   const {
     closeContextMenu,
     onInputValueChangeContextMenu,
-    contextMenuStartIndex,
+    contextMenuStartNodeIndex,
+    contextMenuStartElementIndex,
     showContextMenu,
   } = useContextMenu(inputRef)
 
@@ -77,7 +77,7 @@ export const TextField: React.FC<CreatorProps> = ({
     return false
   }
 
-  useInitialFocus(inputRef, field.value)
+  useInitialFocus(inputRef, field.value, focus)
   useDisableArrowUpDown(inputRef, !showContextMenu)
   const [nextFocus] = useNextFocus(inputRef, {
     disable: shouldDisableFocus(),
@@ -132,6 +132,7 @@ export const TextField: React.FC<CreatorProps> = ({
       if (event.shiftKey && event.key === 'Enter' && !showContextMenu) {
         /** allow multiline */
         // TODO: handle navigation for multiline
+        console.log('shift enter?')
       } else if (event.key === 'Enter' && !showContextMenu) {
         event.preventDefault()
         handleAddFieldOnEnter()
@@ -169,15 +170,17 @@ export const TextField: React.FC<CreatorProps> = ({
   }
 
   const getSelectorMenuSearchValue = (): string => {
-    if (contextMenuStartIndex === -1) return ''
+    if (contextMenuStartNodeIndex === -1) return ''
 
     const selection = window.getSelection()
     const value = selection?.focusNode?.textContent ?? ''
 
-    return value.substring(contextMenuStartIndex, value.length)
+    return value.substring(contextMenuStartNodeIndex, value.length)
   }
 
   const onCreateFieldFromContextMenu = () => {
+    // TODO: remove / from active selection
+
     closeContextMenu()
   }
 
@@ -191,6 +194,7 @@ export const TextField: React.FC<CreatorProps> = ({
       content={
         <CreatorContextMenu
           fieldId={field.id}
+          fieldValue={inputValue}
           searchValue={getSelectorMenuSearchValue()}
           onCreateField={onCreateFieldFromContextMenu}
         />

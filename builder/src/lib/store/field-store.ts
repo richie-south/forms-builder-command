@@ -23,15 +23,6 @@ export const useFieldStore = create<FieldStoreState>(
           value: '',
           weight: 'normal',
         },
-        /*  {
-          id: 'asads',
-          type: 'input',
-          value: '',
-          properties: {
-            inputType: 'text',
-            validation: 'none',
-          },
-        }, */
       ],
       addField: (field, insertAfterId) =>
         insertAfterId

@@ -19,6 +19,7 @@ const AppContainer = styled.div`
   height: 100%;
   justify-content: center;
   align-items: center;
+  cursor: text;
 `
 
 type CreatorProps = {
@@ -33,8 +34,12 @@ const Creator: React.FC<CreatorProps> = ({ field }) => {
     removeField(field.id)
   }
 
+  const handleGrabFocus = () => {
+    setFocus(true)
+  }
+
   return (
-    <CreatorContainer>
+    <CreatorContainer onClick={handleGrabFocus}>
       <CreatorButtonsContainer showButtons={focus}>
         <Icon type="default" mass="large" onClick={handleRemove} pointer plate>
           delete_outline

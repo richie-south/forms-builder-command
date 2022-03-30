@@ -1,20 +1,43 @@
 import { useEffect, useState } from 'react'
 import ContentEditable from 'react-contenteditable'
 
+function getCaretCharacterOffsetWithin(element: HTMLElement) {
+  const selection = window.getSelection()
+  if ((selection?.rangeCount ?? 0) > 0) {
+    const range = selection?.getRangeAt(0)
+    const preCaretRange = range?.cloneRange()
+    preCaretRange?.selectNodeContents(element)
+
+    if (range?.endContainer) {
+      preCaretRange?.setEnd(range.endContainer, range.endOffset)
+      return preCaretRange?.toString().length ?? 0
+    }
+  }
+
+  return 0
+}
+
 export function useContextMenu(inputRef: React.RefObject<ContentEditable>) {
-  const [contextMenuStartIndex, setContextMenuStartIndex] = useState<number>(-1)
+  const [contextMenuStartNodeIndex, setContextMenuStartNodeIndex] =
+    useState<number>(-1)
+  const [contextMenuStartElementIndex, setContextMenuStartElementIndex] =
+    useState<number>(-1)
   const [showContextMenu, setShowContextMenu] = useState<boolean>(false)
 
   const openContextMenu = () => {
     const selection = window.getSelection()
     const position = selection?.getRangeAt(0)?.startOffset ?? -1
 
-    setContextMenuStartIndex(position)
+    setContextMenuStartNodeIndex(position)
+    setContextMenuStartElementIndex(
+      getCaretCharacterOffsetWithin(inputRef.current?.el?.current)
+    )
     setShowContextMenu(true)
   }
 
   const closeContextMenu = () => {
-    setContextMenuStartIndex(-1)
+    setContextMenuStartNodeIndex(-1)
+    setContextMenuStartElementIndex(-1)
     setShowContextMenu(false)
   }
 
@@ -26,7 +49,7 @@ export function useContextMenu(inputRef: React.RefObject<ContentEditable>) {
     const cursorPositionChange = () => {
       const selection = window.getSelection()
       const position = (selection?.getRangeAt(0)?.startOffset ?? 1) - 1
-      if (position < contextMenuStartIndex) {
+      if (position < contextMenuStartNodeIndex) {
         closeContextMenu()
       }
     }
@@ -64,7 +87,7 @@ export function useContextMenu(inputRef: React.RefObject<ContentEditable>) {
       inputRef.current?.el?.current?.removeEventListener('keyup', onKeyUp)
       inputRef.current?.el?.current?.removeEventListener('keydown', onKeyDown)
     }
-  }, [showContextMenu, contextMenuStartIndex])
+  }, [showContextMenu, contextMenuStartNodeIndex])
 
   const onInputValueChangeContextMenu = () => {
     const selection = window.getSelection()
@@ -73,7 +96,10 @@ export function useContextMenu(inputRef: React.RefObject<ContentEditable>) {
 
     if (value === '/' || (value[position] === '/' && !showContextMenu)) {
       openContextMenu()
-    } else if (showContextMenu && value[contextMenuStartIndex - 1] !== '/') {
+    } else if (
+      showContextMenu &&
+      value[contextMenuStartNodeIndex - 1] !== '/'
+    ) {
       closeContextMenu()
     }
   }
@@ -82,7 +108,8 @@ export function useContextMenu(inputRef: React.RefObject<ContentEditable>) {
     openContextMenu,
     closeContextMenu,
     onInputValueChangeContextMenu,
-    contextMenuStartIndex,
+    contextMenuStartNodeIndex,
+    contextMenuStartElementIndex,
     showContextMenu,
   }
 }

@@ -11,11 +11,3 @@ body {
   margin: 0;
   padding: 0;
 }
-
-/* [contenteditable][placeholder]:empty:before {
-  content: attr(placeholder);
-  position: absolute;
-  color: #99979E;
-  background-color: transparent;
-}
- */

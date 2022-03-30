@@ -1,5 +1,4 @@
 import styled, { css } from 'styled-components'
-import { placeholderInputCss } from './style'
 
 export const CreatorContainer = styled.div`
   display: grid;
@@ -13,8 +12,6 @@ export const CreatorContainer = styled.div`
     .material-icons {
       display: flex;
     }
-
-    ${placeholderInputCss}
   }
 `
 
