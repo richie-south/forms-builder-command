@@ -43,7 +43,7 @@ type FieldLabel = {
 } & BaseTextField &
   BaseField
 
-type FieldHeading1 = {
+export type FieldHeading1 = {
   type: 'heading1'
 } & BaseTextField &
   BaseField

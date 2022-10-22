@@ -19,6 +19,8 @@ import { useRefCallback } from '../../hooks/use-ref-callback'
 import { useInitialFocus } from '../../hooks/use-common-field'
 import { getCursorEndPosition, getCursorStartPosition } from '../../lib/cursor'
 import { placeholderFocusCss } from '../style'
+import { useRemoveField } from '../../hooks/use-remove-field'
+import { addFieldOnEnter } from '../../lib/add-field-on-enter'
 
 const FakeInput = styled(ContentEditable)<{
   focus: boolean
@@ -55,11 +57,7 @@ export const TextField: React.FC<CreatorProps> = ({
   focus,
   setFocus,
 }) => {
-  const addField = useFieldStore(selectAddField)
   const updateField = useFieldStore(selectUpdateField)
-  const removeField = useFieldStore(selectRemoveField)
-  const updatePrevFieldValue = useFieldStore(selectUpdatePrevFieldValue)
-
   const [inputValue, setInputValue] = useState<string>('')
 
   const inputRef = useRef<ContentEditable>(null)
@@ -79,52 +77,27 @@ export const TextField: React.FC<CreatorProps> = ({
 
   useInitialFocus(inputRef, field.value, focus)
   useDisableArrowUpDown(inputRef, !showContextMenu)
-  const [nextFocus] = useNextFocus(inputRef, {
-    disable: shouldDisableFocus(),
-  })
+  const handleRemove = useRemoveField(
+    inputRef,
+    inputValue,
+    field.id,
+    shouldDisableFocus()
+  )
 
   useEffect(() => {
     setInputValue(field.value)
   }, [field.value])
 
   const handleAddFieldOnEnter = () => {
-    const allowedFields = [
-      'input',
-      'input-long',
-      'text',
-      'label',
-      'heading1',
-      'heading2',
-      'heading3',
-      'divider',
-    ]
-    const value = inputValue
+    const updateCurentContent = addFieldOnEnter(
+      inputValue,
+      field.type,
+      field.id
+    )
 
-    if (allowedFields.includes(field.type)) {
-      const position = getCursorStartPosition()
-
-      const splitContent = (value.length !== 0 && position !== 0) ?? false
-
-      if (splitContent) {
-        const splitIndex = position ?? value.length
-        const nextContent = value.slice(splitIndex)
-        const updateCurentContent = value.substring(0, splitIndex)
-
-        setInputValue(updateCurentContent)
-        addField(getNewTextField(nextContent), field.id)
-      } else {
-        addField(getNewTextField(), field.id)
-      }
+    if (updateCurentContent) {
+      setInputValue(updateCurentContent)
     }
-  }
-
-  const handleRemove = () => {
-    if (inputValue) {
-      updatePrevFieldValue(field.id, inputValue)
-    }
-
-    nextFocus()
-    removeField(field.id)
   }
 
   const handleKeyDown = useRefCallback(
